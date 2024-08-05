@@ -34,8 +34,8 @@ export class UsersController {
     @Get('profile-picture/:username')
     async getProfilePicture(@Param('username')username: string, @Res()res : Response ){
         const user = await this.userService.findOne(username);
-        let path = '../uploads/profile-pictures/default-user-picture.jpg';
-        if(user.profilePicture !== '')
+        let path = 'src/uploads/profile-pictures/default-user-picture.jpg';
+        if(user.profilePicture !== '' || !user.profilePicture )
             path = user.profilePicture;
         const file = readFileSync(path);
         const stream = new Readable();
@@ -57,7 +57,7 @@ export class UsersController {
             filename:(req,file,cb)=>{
                 cb(null,Date.now() + extname(file.originalname));
             },
-            destination:"../uploads/profile-pictures"
+            destination:"src/uploads/profile-pictures"
         })
     }))
     async createUser(
@@ -79,7 +79,7 @@ export class UsersController {
             filename:(req,file,callback)=>{
                 callback(null,Date.now() + extname(file.originalname));
             },
-            destination:"../uploads/profile-pictures"
+            destination:"src/uploads/profile-pictures"
         })
     }))
     @Put(':id')
