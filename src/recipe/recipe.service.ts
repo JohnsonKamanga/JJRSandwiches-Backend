@@ -35,11 +35,11 @@ export class RecipeService {
     return await this.recipeRepository.find({
       where: [
         {
-          name: ILike(query),
+          name: ILike(`%${query}%`),
         },
         {
           ingredients: {
-            name: ILike(query),
+            name: ILike(`%${query}%`),
           },
         },
       ],

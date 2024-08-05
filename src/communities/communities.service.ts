@@ -42,7 +42,7 @@ export class CommunitiesService {
     return await this.communitiesRepository.find({
       where:[
         {
-          name: ILike(query)
+          name: ILike(`%${query}%`)
         },
         {
           description: ILike(`%${query}%`)
