@@ -35,7 +35,7 @@ export class UsersController {
     async getProfilePicture(@Param('username')username: string, @Res()res : Response ){
         const user = await this.userService.findOne(username);
         let path = 'src/uploads/profile-pictures/default-user-picture.jpg';
-        if(user.profilePicture !== '' || !user.profilePicture )
+        if(user.profilePicture && user.profilePicture !== '')
             path = user.profilePicture;
         const file = readFileSync(path);
         const stream = new Readable();
