@@ -15,10 +15,11 @@ import {
 import { CommunitiesService } from './communities.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'node:path/posix';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { readFileSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import { Response } from 'express';
+import { uploadFile } from 'src/cloudinaryConfig';
 
 @Controller('communities')
 export class CommunitiesController {
@@ -44,19 +45,6 @@ export class CommunitiesController {
     return await this.communitiesService.findByName(name);
   }
 
-  @Get('community-pictures/:id')
-  async getPicture(@Param('id')id, @Res()res: Response){
-    const community = await this.communitiesService.findByID(id);
-        let path = 'src/uploads/community-pictures/default-community-picture.jpg';
-        if(community.communityPicture !== '')
-        path = community.communityPicture;
-        const file = readFileSync(path);
-        res.contentType(`image/${path.split('.').pop()}`);
-        const stream = new Readable();
-        stream.push(file);
-        stream.push(null);
-        stream.pipe(res);
-  }
 
   @Get('members/:id')
   async findCommunityMembers(@Param('id') id) {
@@ -65,35 +53,31 @@ export class CommunitiesController {
 
   @Post()
   @UseInterceptors(FileInterceptor('communityPicture',{
-    storage:diskStorage({
-        filename:(req,file,cb)=>{
-            cb(null,Date.now() + extname(file.originalname));
-        },
-        destination:"src/uploads/community-pictures"
-    })
+    storage:memoryStorage()
 }))
 
   async createCommunity(
     @UploadedFile()file: Express.Multer.File, @Req() request: Request
   ){
-    return await this.communitiesService.create({...request.body, communityPicture: file?.path});
+    let uploadResult;
+        if(file){
+            uploadResult = await uploadFile(file.buffer,"uploads/community-pictures" );
+        
+        ;}
+    return await this.communitiesService.create({...request.body, communityPicture: uploadResult?.secure_url});
   }
 
   @Put(':id')
   @UseInterceptors(FileInterceptor('image',{
-   storage:diskStorage({
-    filename:(req,file,cb)=>{
-      cb(null,Date.now() + extname(file.originalname));
-    },
-    destination:"src/uploads/community-pictures"
-   }),
+   storage:memoryStorage(),
   }))
   async update(@UploadedFile()file: Express.Multer.File, @Param('id')id, @Req() request: Request){
-    if(file.originalname === '' ){
-      return await this.communitiesService.update(id, request.body);
+    let uploadResult;
+    if(file){
+      uploadResult = await uploadFile(file.buffer,'uploads/community-pictures' );
     }
 
-    return await this.communitiesService.update(id, {...request.body, image: file.path})
+    return await this.communitiesService.update(id, {...request.body, image: uploadResult?.secure_url})
   }
   @Delete(':id')
   async deleteCommunity(@Param('id') id) {
