@@ -6,7 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("api");//all endpoints are accessiblbe through api eg. api/recipe
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT',10000);
+  const port = process.env.PORT || 10000 ;
   app.enableCors();
   await app.listen(port);
 }
